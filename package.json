@@ -1,0 +1,28 @@
+{
+  "name": "elm-http-pipeline",
+  "version": "0.0.1",
+  "description": "A library for building HTTP requests using the pipeline (`|>`) operation and plain function calls.",
+  "main": "index.js",
+  "scripts": {
+    "test": "elm-test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lenards/elm-http-pipeline.git"
+  },
+  "keywords": [
+    "elm"
+  ],
+  "author": "Andrew J Lenards",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lenards/elm-http-pipeline/issues"
+  },
+  "homepage": "https://github.com/lenards/elm-http-pipeline#readme",
+  "devDependencies": {
+    "elm": "^0.19.0-no-deps",
+    "elm-format": "^0.8.2",
+    "elm-live": "^3.4.1",
+    "elm-test": "^0.19.0-rev6"
+  }
+}
