@@ -17,22 +17,18 @@ Read <https://elm-lang.org/0.19.0/repl> to learn more: exit, help, imports, etc.
 --------------------------------------------------------------------------------
 > import Http
 > import Http.Pipeline exposing (..)
-> Get "http://httpbin.org/get-values" \
-|   |> addHeaders [] \
-|   |> setBody Http.emptyBody \
-|
-<function> : R5 msg
 > type Msg = Ignored (Result Http.Error ())
-> Get "http://httpbin.org/get-values" \
+> Get "http://httpbin.org/get" \
+|   |> create \
 |   |> addHeaders [] \
 |   |> setBody Http.emptyBody \
 |   |> expectedResponse (Http.expectWhatever Ignored) \
 |   |> build
-{ body = <internals>, expect = <internals>, headers = [], method = "GET", timeout = Nothing, tracker = Nothing, url = "http://httpbin.org/get-values" }
+{ body = <internals>, expect = <internals>, headers = [], method = "GET", timeout = Nothing, tracker = Nothing, url = "http://httpbin.org/get" }
     : Request Msg
 ```
 -}
-type HttpMethod 
+type HttpMethod
     = Get String
     | Head String
     | Post String
@@ -58,59 +54,73 @@ type ExpectedResponse msg
 
 type alias Request msg =
     { method : String
-    , headers : List Header
     , url : String
+    , headers : List Header
     , body : Body
     , expect : Expect msg
     , timeout : Maybe Float
     , tracker : Maybe String
     }
 
+type Partial a = Partial a
 
 type alias R2 msg =
-    (List Header) -> String -> Body -> (Expect msg) -> (Maybe Float) -> (Maybe String) -> Request msg 
+    String -> (List Header) -> Body -> (Expect msg) -> (Maybe Float) -> (Maybe String) -> Request msg
 
 type alias R3 msg =
-    String -> Body -> (Expect msg) -> (Maybe Float) -> (Maybe String) -> Request msg 
+    (List Header) ->  Body -> (Expect msg) -> (Maybe Float) -> (Maybe String) -> Request msg
 
 type alias R4 msg =
-    Body -> (Expect msg) -> (Maybe Float) -> (Maybe String) -> Request msg 
+    Body -> (Expect msg) -> (Maybe Float) -> (Maybe String) -> Request msg
 
 type alias R5 msg =
-    (Expect msg) -> (Maybe Float) -> (Maybe String) -> Request msg 
+    (Expect msg) -> (Maybe Float) -> (Maybe String) -> Request msg
 
 type alias R6 msg =
-    (Maybe Float) -> (Maybe String) -> Request msg 
+    (Maybe Float) -> (Maybe String) -> Request msg
 
-addHeaders : List Header -> HttpMethod -> R4 msg 
-addHeaders headers method  =
+create : HttpMethod -> Partial (R3 msg)
+create method =
     case method of
         Get url ->
-            (Request "GET" headers url)
+            Partial (Request "GET" url)
         Head url ->
-            (Request "HEAD" headers url)
+            Partial (Request "HEAD" url)
         Post url ->
-            (Request "POST" headers url)
+            Partial (Request "POST" url)
         Put url ->
-            (Request "PUT" headers url)
+            Partial (Request "PUT" url)
         Delete url ->
-            (Request "DELETE" headers url)
+            Partial (Request "DELETE" url)
         Options url ->
-            (Request "OPTIONS" headers url)
+            Partial (Request "OPTIONS" url)
         Patch url ->
-            (Request "PATCH" headers url)
+            Partial (Request "PATCH" url)
 
-setBody : Body -> R4 msg -> R5 msg
-setBody b f =
-    (f b)
 
-expectedResponse : Expect msg -> R5 msg -> R6 msg
-expectedResponse expected f =
-    (f expected)
+addHeaders : List Header -> Partial (R3 msg) -> Partial (R4 msg)
+addHeaders headers (Partial f)  =
+    Partial (f headers)
 
-build : R6 msg -> Request msg
-build f =
+setBody : Body -> Partial (R4 msg) -> Partial (R5 msg)
+setBody b (Partial f) =
+    Partial (f b)
+
+expectedResponse : Expect msg -> Partial (R5 msg) -> Partial (R6 msg)
+expectedResponse expected (Partial f) =
+    Partial (f expected)
+
+build : Partial (R6 msg) -> Request msg
+build (Partial f) =
     f Nothing Nothing
+
+{-| Cannot make the **leap* to something generalized _yet_
+
+this is just something that compiles ...
+-}
+set : a -> (a -> b) -> Partial b
+set val p =
+    Partial (p val)
 
 -- Conversion
 
